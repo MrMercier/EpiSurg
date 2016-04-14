@@ -11,6 +11,14 @@ function [figH, axH]=plotCtVsDural(sub,printEm,plotPial)
 %
 % This function is called pial by interpStripElec.m and yangWangElecPjct.m
 %
+% Inputs:
+%  sub - Subject's FreeSurfer name/folder
+%  printEm  - If nonzero, copies of the images are output the
+%             "elec_recon/PICS" subfolder of the subject's FreeSurfer folder
+%  plotPial - If nonzero, a figure is created that illustrateds
+%             post-brainshift corrected electrodes color coded by the extent of
+%             brainshift correction.
+%
 % Author: David Groppe
 % Honeylab, Univ. of Toronto
 % June 2015
@@ -102,6 +110,21 @@ xlabel('Left- Right+');
 ylabel('Pos- Ant+');
 zlabel('Inf- Sup+');
 
+if universalYes(printEm)
+    % Make sure PICS directory exists
+    outPath=fullfile(erPath,'PICS');
+    if ~exist(outPath,'dir')
+        dirSuccess=mkdir(outPath);
+        if ~dirSuccess,
+            error('Could not create directory %s',dirSuccess);
+        end
+    end
+    outFigFname=fullfile(outPath,sprintf('%s_ShiftDist.jpg',sub));
+    print(figH(1),'-djpeg',outFigFname);
+    outFigFname=fullfile(outPath,sprintf('%s_ShiftDist',sub));
+    saveas(figH(1),[outFigFname '.fig']); % PM edit 20160405
+end
+
 % Plot shift distances on pial surface
 if ~isempty(non_depth_ids)
     if universalYes(plotPial)
@@ -124,27 +147,11 @@ if ~isempty(non_depth_ids)
         cfg.elecNames=chanName;
         cfg.showLabels='n';
         cfg.title=sprintf('%s: CT to Dural distance',sub);
-        cfg_out=plotPialSurf(sub,cfg);
+        plotPialSurf(sub,cfg);
         
         if universalYes(printEm)
-            % Make sure PICS directory exists
-            outPath=fullfile(erPath,'PICS');
-            if ~exist(outPath,'dir')
-                dirSuccess=mkdir(outPath);
-                if ~dirSuccess,
-                    error('Could not create directory %s',dirSuccess);
-                end
-            end
-            outFigFname=fullfile(outPath,sprintf('%s_ShiftDist.jpg',sub));
-            %outFigFname=sprintf('%s/PICS/electrodes/%s_ShiftDist.jpg',erPath,sub);
-            print(figH(1),'-djpeg',outFigFname);
-            outFigFname=fullfile(outPath,sprintf('%s_ShiftDist',sub));
-            %outFigFname=sprintf('%s/PICS/electrodes/%s_ShiftDist',erPath,sub);
-            %savefig(figH(1),outFigFname); % PM edit 20160405
-            saveas(figH(1),[outFigFname '.fig']);
             outFigFname=fullfile(outPath,sprintf('%s_ShiftDistOnBrain.jpg',sub));
-            %outFigFname=sprintf('%s/PICS/electrodes/%s_ShiftDistOnBrain.jpg',erPath,sub);
             print(figH(2),'-djpeg',outFigFname);
         end
-    end
+    end 
 end

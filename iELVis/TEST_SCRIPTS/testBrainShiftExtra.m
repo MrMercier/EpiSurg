@@ -1,4 +1,5 @@
 %% Remove existing files
+% Test depths only subject
 sub='S13_50_LGM';
 eReconDir=fullfile(getFsurfSubDir(),sub,'elec_recon');
 eReconFiles{1}='.CT';

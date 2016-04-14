@@ -156,6 +156,9 @@ cfg.elecNames=elecNames;
 cfg.title=sprintf('%s: Stimulus Correlations',sub);
 cfgOut=plotPialSurf(sub,cfg);
 
+disp('Ignore the warning message just thrown by plotPialSurf. Right hem electrodes were included as a bug check in this example.');
+disp('It is supposed to trigger a warning.');
+
 
 %%
 disp('testElecVisualizationExtra.m completed successfully.');

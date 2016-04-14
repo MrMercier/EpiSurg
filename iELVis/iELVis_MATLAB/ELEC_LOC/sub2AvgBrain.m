@@ -1,9 +1,12 @@
-function [avgCoords, elecNames, isLeft, avgVids, subVids]=pial2AvgBrain(subj,cfg)
-%function [avgCoords, elecNames, isLeft, avgVids, subVids]=pial2AvgBrain(subj,cfg)
+function [avgCoords, elecNames, isLeft, avgVids, subVids]=sub2AvgBrain(subj,cfg)
+%function [avgCoords, elecNames, isLeft, avgVids, subVids]=sub2AvgBrain(subj,cfg)
 %
-% This function takes RAS "pial" coordinates (snapped to pial surface)
-% and maps it to the corresponding location on the pial surface of
-% FreeSurfer's average brain.
+% This function maps electrodes from patient space to the FreeSurfer average
+% brain. For subdural electrodes, it takes RAS "pial" coordinates (snapped 
+% to the pial surface) and maps it to the corresponding location on the pial 
+% surface of FreeSurfer's average brain. Depth electrodes are mapped to
+% MNI305 space with an affine transformation; these coordinates too can be
+% visualized on the FreeSurfer average brain.
 %
 % Inputs:
 %   subj = FreeSurfer subject name
@@ -32,7 +35,7 @@ function [avgCoords, elecNames, isLeft, avgVids, subVids]=pial2AvgBrain(subj,cfg
 %               if elecNames is used. Otherwise this information is read
 %               from the participant's electrodeNames file {default:
 %               all electrodes are assumed to be subdural}
-%   rmDepths = 1 or 0. If nonzero, depth electrodes are ignored. {default: 1}
+%   rmDepths = 1 or 0. If nonzero, depth electrodes are ignored. {default: 0}
 %
 % Outputs:
 %   avgCoords = Electrode coordinates on FreeSurfer avg brain pial surface
@@ -61,8 +64,8 @@ if  ~isfield(cfg,'elecCoord'),      elecCoord = []; else    elecCoord = cfg.elec
 if  ~isfield(cfg,'elecNames'),      elecNames = []; else    elecNames = cfg.elecNames;      end
 if  ~isfield(cfg,'isLeft'),        isLeft = [];   else    isLeft = cfg.isLeft;      end
 if  ~isfield(cfg,'isSubdural'),     isSubdural = [];   else    isSubdural = cfg.isSubdural;      end
-if  ~isfield(cfg,'rmDepths'),       rmDepths = 1;   else    rmDepths = cfg.rmDepths;      end
-checkCfg(cfg,'pial2AvgBrain.m');
+if  ~isfield(cfg,'rmDepths'),       rmDepths = 0;   else    rmDepths = cfg.rmDepths;      end
+checkCfg(cfg,'sub2AvgBrain.m');
 
 
 % FreeSurfer Subject Directory
@@ -142,6 +145,8 @@ if universalYes(rmDepths),
     elecNames=elecNames(keepIds);
     elecCoord=elecCoord(keepIds,:);
     nElec=length(elecNames);
+else
+    [avgCoordsDepths, elecNamesDepths]=depths2AvgBrain(subj);
 end
 
 
@@ -169,9 +174,13 @@ for hemLoop=1:2,
         nHemElec=length(hemElecIds);
         n_pial_vert=size(pial.vert,1);
         for a=1:nHemElec,
-            df=pial.vert-repmat(elecCoord(hemElecIds(a),:),n_pial_vert,1);
-            dst=sum(df.^2,2);
-            [~, subVids(hemElecIds(a))]=min(dst);
+            if isSubdural(hemElecIds(a)),
+                df=pial.vert-repmat(elecCoord(hemElecIds(a),:),n_pial_vert,1);
+                dst=sum(df.^2,2);
+                [~, subVids(hemElecIds(a))]=min(dst);
+            else
+                subVids(hemElecIds(a))=1; %dummy vertex
+            end
         end
         
         sphFnameSub=fullfile(subDir,'surf',[hem 'h.sphere.reg']);
@@ -181,15 +190,26 @@ for hemLoop=1:2,
         avg_sph=readSurfHelper(sphFnameAvg);
         nAvgVert=length(avg_sph.vert);
         for a=1:nHemElec,
-            df=avg_sph.vert-repmat(sph.vert(subVids(hemElecIds(a)),:),nAvgVert,1);
-            dst=sum(df.^2,2);
-            [~, avgVids(hemElecIds(a))]=min(dst);
+            if isSubdural(hemElecIds(a)),
+                df=avg_sph.vert-repmat(sph.vert(subVids(hemElecIds(a)),:),nAvgVert,1);
+                dst=sum(df.^2,2);
+                [~, avgVids(hemElecIds(a))]=min(dst);
+            else
+                avgVids(hemElecIds(a))=1; %dummy vertex
+            end
         end
         
         avgPialFname=fullfile(avgDir,'surf',[ hem 'h.pial']);
         avgPial=readSurfHelper(avgPialFname);
         for a=1:nHemElec,
-            avgCoords(hemElecIds(a),:)=avgPial.vert(avgVids(hemElecIds(a)),:);
+            if isSubdural(hemElecIds(a)),
+                avgCoords(hemElecIds(a),:)=avgPial.vert(avgVids(hemElecIds(a)),:);
+            else
+                % Get depth coordinate in MNI305 space
+                %[avgCoordsDepths, elecNamesDepths, isLeftDepths]=depths2AvgBrain(subj);
+                depthId=findStrInCell(elecNames{hemElecIds(a)},elecNamesDepths,1);
+                avgCoords(hemElecIds(a),:)=avgCoordsDepths(depthId,:);
+            end
         end
         
         
@@ -218,6 +238,9 @@ for hemLoop=1:2,
                 clickText(h,elecNames{a+plotCtOffset});
                 set(h,'markersize',20,'color',elecColors(a,:));
             end
+            if universalNo(rmDepths)
+               alpha(0.5); % Make surface transparent so that depths are visible 
+            end
             rotate3d off;
             
             % Plot Electrodes on Participant Brain
@@ -232,10 +255,13 @@ for hemLoop=1:2,
                 view(270,0);
             end
             for a=1:nHemElec
-                d=subVids(a+plotCtOffset);
-                h=plot3(pial.vert(d,1),pial.vert(d,2),pial.vert(d,3),'r.');
+                h=plot3(elecCoord(hemElecIds(a),1),elecCoord(hemElecIds(a),2), ...
+                    elecCoord(hemElecIds(a),3),'r.');
                 clickText(h,elecNames{a+plotCtOffset});
                 set(h,'markersize',20,'color',elecColors(a,:));
+            end
+            if universalNo(rmDepths)
+                alpha(0.5); % Make surface transparent so that depths are visible
             end
             rotate3d off;
             set(gcf,'name',subj);
@@ -259,10 +285,11 @@ for hemLoop=1:2,
             for a=1:nHemElec
                 h=plot3(avgCoords(a+plotCtOffset,1),avgCoords(a+plotCtOffset,2), ...
                     avgCoords(a+plotCtOffset,3),'r.');
-                %                 clickText(h,[elecNames{a} sprintf(' %.3f %.3f %.3f',avgCoords(a,1), ...
-                %                     avgCoords(a,2),avgCoords(a,3))]);
                 clickText(h,elecNames{a+plotCtOffset});
                 set(h,'markersize',20,'color',elecColors(a,:));
+            end
+            if universalNo(rmDepths)
+                alpha(0.5); % Make surface transparent so that depths are visible
             end
             rotate3d off;
             
@@ -278,10 +305,13 @@ for hemLoop=1:2,
                 view(90,0);
             end
             for a=1:nHemElec
-                d=subVids(a+plotCtOffset);
-                h=plot3(pial.vert(d,1),pial.vert(d,2),pial.vert(d,3),'r.');
+                h=plot3(elecCoord(hemElecIds(a),1),elecCoord(hemElecIds(a),2), ...
+                    elecCoord(hemElecIds(a),3),'r.');
                 clickText(h,elecNames{a+plotCtOffset});
                 set(h,'markersize',20,'color',elecColors(a,:));
+            end
+            if universalNo(rmDepths)
+                alpha(0.5); % Make surface transparent so that depths are visible
             end
             rotate3d off;
             set(gcf,'name',subj);

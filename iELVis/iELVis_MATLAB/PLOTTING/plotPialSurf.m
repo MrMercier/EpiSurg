@@ -28,7 +28,7 @@
 %     elecShape            -'marker' or 'sphere': The shape used to
 %                           represent electrodes. {default: 'marker'}
 %     elecColors           -2D matrix of colors to fill electrodes
-%                           (rows=electrodes, columns=RGB values) or a vector
+%                           (rows=electrodes, columns=RGB values), a vector
 %                           of values that will be automatically converted
 %                           into a color scale, or 'r' to make all red.
 %                           {default: all electrodes filled with black}
@@ -1306,6 +1306,7 @@ for h=1:2,
         sub_cfg_out=plotPialSurf(fsSub,sub_cfg);
         
         % Get electrode colormap limits
+        
         if isempty(elecUsedLimits)
             if isfield(sub_cfg_out,'elecCbarLimits')
                 elecUsedLimits=sub_cfg_out.elecCbarLimits;
@@ -1321,8 +1322,12 @@ for h=1:2,
             end
         end
         
+        if isempty(elecCmapName) && isfield(sub_cfg_out,'elecCmapName')
+            elecCmapName=sub_cfg_out.elecCmapName;
+        end
     end
 end
+
 
 %% DRAW COLORBAR(S)
 if universalYes(elecCbar) && universalYes(olayCbar),
