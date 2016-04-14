@@ -1,9 +1,9 @@
 #!/bin/sh
 
-# ct2mriBmask.sh
+# ct2mriBmaskSeed.sh
 # 
 #The second argument is the nii.gz file of the CT scan that you need to create with something like Matlab or FSL's mri_convert function.
-#This script uses FSL's flirt command to rigidly (i.e., 6 degrees of freedom mapping) transform the CT scan so that it lines up with the preimplant skull-stripped MRI by maximizing the mutual information between the volumes.
+#This script uses FSL's flirt command to rigidly (i.e., 6 degrees of freedom mapping) transform the CT scan so that it lines up with the preimplant MRI by maximizing the mutual information between the volumes. A rigid coregistration between the CT and skullstripped MRI is used to seed the subsequent CT to full-head MRI coregistration.
 #Images of the two volumes overlayed are automatically generated so that you can inspect the quality of the coregistration. 
 #In the process the elec_recon subfolder in the patient's FreeSurfer folder is created along with the following files:
 #    T1.nii.gz: The full head MRI
@@ -53,7 +53,8 @@ echo 'Copying CT nii.gz file to elec_recon folder.'
 cp $2 $elecReconPath/.
 
 echo 'Registering ' $2 ' to brainmask.nii.gz with a rigid (6 degrees of freedom) transformation that maximizes mutual information between the volumes. This takes awhile....'
-flirt -in $2  -ref $elecReconPath/brainmask.nii.gz -out $elecReconPath/ctINt1.nii.gz -omat $elecReconPath/ct2t1.mat -interp trilinear -cost mutualinfo -dof 6 -searchcost mutualinfo -searchrx -180 180 -searchry -180 180 -searchrz -180 180
+flirt -in $2  -ref $elecReconPath/brainmask.nii.gz -omat $elecReconPath/ct2bmask.mat -interp trilinear -cost mutualinfo -dof 6 -searchcost mutualinfo -searchrx -180 180 -searchry -180 180 -searchrz -180 180
+flirt -in $2  -ref $elecReconPath/T1.nii.gz -out $elecReconPath/ctINt1.nii.gz -omat $elecReconPath/bmask2t1.mat -interp trilinear -cost mutualinfo -dof 6 -searchcost mutualinfo -init ct2bmask.mat
 # Make directory store coregistration images
 mkdir -p $elecReconPath/PICS/COREG/
 
