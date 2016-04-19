@@ -43,5 +43,27 @@ end
 %%
 parcOut=elec2Parc('PT001','Y7');
 
+
+%%
+% Read annotation file
+[averts, label, col]=read_annotation(fullfile(getFsurfSubDir(),'fsaverage','label','lh.Yeo2011_17Networks_N1000.annot'));
+
+% Network you want to plot
+id = 17;
+
+% Make verteces gray
+parc_col = .7.*255.*ones(size(col.table(:,1:3)));
+
+% Color parcel of interest
+parc_col(id,:)=col.table(id,1:3);
+
+cfg=[];
+cfg.view='l';
+cfg.overlayParcellation='Y17';
+cfg.title=col.struct_names{id}; 
+cfg.parcellationColors = parc_col;
+cfgOut=plotPialSurf('PT001',cfg);
+
+
 %%
 disp('Script testAtlases.m completed successfully.')
