@@ -21,6 +21,11 @@ function anatLabel=vox2Seg(coordILA,fsSub)
 % Feb. 2015
 % Feinstein Institute for Medical Research/Univ. of Toronto
 
+% Future work:
+% -Add an option that uses the Destrieux atlas instead of Desikan-Killiany. 
+% That simply requires using aparc.a2009s+aseg.mgz instead of
+% aparc+aseg.mgz.
+
 % Load aseg volume
 fsdir=getFsurfSubDir();
 

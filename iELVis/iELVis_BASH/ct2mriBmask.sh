@@ -14,7 +14,7 @@
 # Questions? Email: david.m.groppe@gmail.com
 # Copyright 2015 __MyCompanyName__. All rights reserved.
 
-usage='\nUSAGE:\n  ct2mri.sh freesurferSubjectName ctNiiFile\n\nEXAMPLE:\n ct2mri.sh TWH014 /Users/dgroppe/Desktop/TWH_14_DICOMS/ct.nii.gz\n'
+usage='\nUSAGE:\n  ct2mriBmask.sh freesurferSubjectName ctNiiFile\n\nEXAMPLE:\n ct2mriBmask.sh TWH014 /Users/dgroppe/Desktop/TWH_14_DICOMS/ct.nii.gz\n'
 
 if [ "$#" = 0 ]; then
  echo $usage
