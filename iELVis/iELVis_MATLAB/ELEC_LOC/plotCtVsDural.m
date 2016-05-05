@@ -89,8 +89,9 @@ axis([1 length(shiftDist) v(3:4)]);
 
 %3D plot of and pre vs. post shift correction locations
 axH(2)=subplot(122);
-for a=1:length(shiftDist),
+for a=1:nChan,
     h=plot3(duralRAS(a,1),duralRAS(a,2),duralRAS(a,3),'r.'); hold on;
+    set(h,'color',rgb(a,:),'markersize',25);
     clickText(h,chanName{a});
     h=plot3(ctRAS(a,1),ctRAS(a,2),ctRAS(a,3),'bo');
     %clickText(h,rm_substring(labels{a},'_'));
