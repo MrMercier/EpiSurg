@@ -145,11 +145,10 @@
 %                           Replace 'l' with 'r' to get these views of the
 %                           right hemisphere. Alternatively, you can define
 %                           everything yourself like so:
-%                                   brainView.light
-%                                   brainView.hem
-%                                   light: [1 0 0]
-%                                   eyes: [45 0]
-%                                   hem: 'r'
+%                                   brainView.light=[1 0 0];
+%                                   brainView.hem='r';
+%                                   brainView.eyes=[45 0]
+%                                   cfg.view=brainView
 %
 %    Neuroimaging Options:
 %     pialOverlay          -Filename or cell array of filenames of
