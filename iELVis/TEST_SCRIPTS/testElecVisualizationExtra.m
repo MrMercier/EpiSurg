@@ -160,6 +160,44 @@ disp('Ignore the warning message just thrown by plotPialSurf. Right hem electrod
 disp('It is supposed to trigger a warning.');
 
 
+%% Plot a single electrode with color specified (this produced an error for Kathrin once)
+elecNames=cell(1,1);
+for a=1:1,
+    elecNames{a}=sprintf('LGd%d',a+16+4);
+end
+cfg=[];
+cfg.view='l';
+cfg.elecShape='sphere';
+cfg.elecColors=[1 0 1];
+cfg.elecColorScale=[.5 .5];
+cfg.elecCbar='n';
+cfg.showLabels='n';
+cfg.elecUnits='r';
+cfg.elecNames=elecNames;
+cfg.title='PT001: Stimulus Correlations';
+cfgOut=plotPialSurf('PT001',cfg);
+
+
 %%
 disp('testElecVisualizationExtra.m completed successfully.');
+
+
+return;
+
+%%%%%%% ERROR CASES %%%%%%%
+
+%% Throw an error when multiple electrodes have the exact same name
+elecNames=cell(8,1);
+for a=1:8,
+    elecNames{a}=sprintf('LGd1');
+end
+cfg=[];
+cfg.view='lomni';
+cfg.elecColors=rand(8,1);
+cfg.elecColorScale='minmax';
+cfg.showLabels='n';
+cfg.elecUnits='r';
+cfg.elecNames=elecNames;
+cfg.title='PT001: Stimulus Correlations';
+cfgOut=plotPialSurf('PT001',cfg);
 

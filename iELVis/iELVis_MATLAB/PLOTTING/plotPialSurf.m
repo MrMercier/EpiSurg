@@ -28,8 +28,8 @@
 %     elecShape            -'marker' or 'sphere': The shape used to
 %                           represent electrodes. {default: 'marker'}
 %     elecColors           -2D matrix of colors to fill electrodes
-%                           (rows=electrodes, columns=RGB values), a vector
-%                           of values that will be automatically converted
+%                           (rows=electrodes, columns=RGB values), a column 
+%                           vector of values that will be automatically converted
 %                           into a color scale, or 'r' to make all red.
 %                           {default: all electrodes filled with black}
 %     edgeBlack            -If 'y', electrodes will all have a black
@@ -676,7 +676,6 @@ alpha(opaqueness);
 
 
 %% PLOT ELECTRODES (optional)
-%elecSphere=0; %default
 if universalNo(elecCoord)
     verbReport('...not plotting electrodes',2,verbLevel);
 else
@@ -698,7 +697,7 @@ else
                 cfg_pvox2inf.fsurfSubDir=fsDir;
                 cfg_pvox2inf.elecCoord=elecCoord(showElecIds,:);
                 cfg_pvox2inf.elecNames=color_elecnames;
-                RAS_coor=pial2InfBrain(fsSub,cfg_pvox2inf); 
+                RAS_coor=pial2InfBrain(fsSub,cfg_pvox2inf);
             else
                 RAS_coor=RAS_coor(showElecIds,:);
             end
@@ -817,7 +816,9 @@ else
     elseif ischar(elecColors) && strcmp(elecColors,'r')
         elecColors = zeros(size(RAS_coor));
         elecColors(:,1) = 1;
-    elseif isvector(elecColors)
+    elseif isvector(elecColors) && size(elecColors,2)~=3
+        % we need the second condition in case wants to plot a single
+        % electrode and passes an rgb vector to specify the color
         if isnumeric(elecColorScale)
             type='minmax';
             elecCbarMin=elecColorScale(1);
@@ -839,7 +840,15 @@ else
             [elecColors, elecLimits, elecCmapName]=vals2Colormap(elecColors,type,elecCmapName,[elecCbarMin elecCbarMax]);
         end
     else
-        % DG ?? to do, grab elecCbarMin and elecCbarMax from optional inputs when matrix of rgb values passed elecCbarMin=min(
+        % elecColorScale consists of a matrix or vector of RGB values
+        if ~universalNo(elecCbar),
+            if isnumeric(elecColorScale) && isvector(elecColorScale) && length(elecColorScale)==2
+                elecCbarMin=min(elecColorScale);
+                elecCbarMin=max(elecColorScale);
+            else
+                error('When cfg.elecColors is a matrix of RGB values, elecColorScale needs to specify the min and max of the colorscale.');
+            end
+        end
     end
     if ~isempty(color_elecnames),
         n_color_electrodes=length(color_elecnames);
@@ -869,6 +878,12 @@ else
         elecSphere=0;
     end
     
+    % Check to make sure colored electrodes have unique names
+    if ~isempty(color_elecnames)
+       if length(color_elecnames)~=length(unique(color_elecnames)) 
+           error('cfg.elecNames has multiple entries with the exact same electrode name.');
+       end
+    end
     
     for j = 1:nRAS
         if ismember(lower(elecNames{j}),lower(onlyShow)),
