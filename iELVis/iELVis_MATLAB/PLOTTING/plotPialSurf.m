@@ -14,7 +14,7 @@
 %    Electrode Options:
 %     elecCoord            -If 'n', no electrodes will be rendered in the
 %                           figure.  If 'y', electrode coordinates will be
-%                           taken from *.DURAL file in patient's
+%                           taken from *.LEPTO file in patient's
 %                           FreeSurfer folder.  Alternatively, you
 %                           can pass a 2D matrix of coordinates
 %                           instead. The first 3 columns of such a matrix
@@ -705,13 +705,13 @@ else
             error('...Electrode input is numeric but doesn''t have 3 coordinates + binary hemisphere column');
         end
     else
-        % electrode coordinates and names to be read from .DURAL and .electrodeNames files
-        verbReport(sprintf('...Overlaying electrodes. Taking coordinates from %s.DURAL and %s.electrodeNames in elec_recon folder. Use cfg.eleccord=''n''; if not wanted.',fsSub,fsSub), ...
+        % electrode coordinates and names to be read from .LEPTO and .electrodeNames files
+        verbReport(sprintf('...Overlaying electrodes. Taking coordinates from %s.LEPTO and %s.electrodeNames in elec_recon folder. Use cfg.eleccord=''n''; if not wanted.',fsSub,fsSub), ...
             2,verbLevel);
         if strcmpi(surfType,'inflated')
             coordFname=fullfile(fsDir,fsSub,'elec_recon',[fsSub '.INF']);
         else
-            coordFname=fullfile(fsDir,fsSub,'elec_recon',[fsSub '.DURAL']);
+            coordFname=fullfile(fsDir,fsSub,'elec_recon',[fsSub '.LEPTO']);
         end
         elecCoordCsv=csv2Cell(coordFname,' ',2);
         nElecTotal=size(elecCoordCsv,1);

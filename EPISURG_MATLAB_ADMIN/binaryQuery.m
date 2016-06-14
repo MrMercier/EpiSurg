@@ -1,5 +1,5 @@
-function resp=binary_query()
-%function resp=binary_query()
+function resp=binaryQuery()
+%function resp=binaryQuery()
 %
 % Asks user to "Answer y or n:" and continues to ask until a 'y' or 'n'
 % is input.  Function is NOT case sensitive
