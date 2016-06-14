@@ -45,9 +45,11 @@ cp $fsDir/elec_recon/00README.txt $newFolder/elec_recon/.
 
 # Copy mri stuff
 mkdir $newFolder/mri
+mkdir $newFolder/mri/transforms
 cp $fsDir/mri/brainmask.mgz $newFolder/mri/.
 cp $fsDir/mri/aparc+aseg.mgz $newFolder/mri/.
 cp $fsDir/mri/orig.mgz $newFolder/mri/.
+cp $fsDir/mri/transforms/talairach.xfm $newFolder/mri/transforms/.
 
 # Copy label stuff
 mkdir $newFolder/label
