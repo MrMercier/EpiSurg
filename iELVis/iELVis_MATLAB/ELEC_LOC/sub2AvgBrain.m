@@ -145,6 +145,7 @@ if universalYes(rmDepths),
     elecNames=elecNames(keepIds);
     elecCoord=elecCoord(keepIds,:);
     nElec=length(elecNames);
+    isSubdural=isSubdural(keepIds);
 else
     [avgCoordsDepths, elecNamesDepths]=depths2AvgBrain(subj);
 end

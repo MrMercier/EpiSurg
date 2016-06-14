@@ -13,9 +13,9 @@ function dykstraElecPjct(sub,minimizeChange)
 %
 % Optional Input:
 %  minimizeChange - [0 | 1] If 0, subdural electrodes are simply projected
-%        to the closest dural surface vertex to correct for brain shift. If
+%        to the closest leptomeningeal surface vertex to correct for brain shift. If
 %        non-zero, an interative optimization algorithm is used to project
-%        electrodes to the dural surface in a way tha minimizes their
+%        electrodes to the leptomeningeal surface in a way tha minimizes their
 %        change in spatial location and change in the Euclidean distance 
 %        between electrode neighbors. Turning off the optimization may help 
 %        if the optimization peforms poorly. {default: 1}
@@ -25,10 +25,10 @@ function dykstraElecPjct(sub,minimizeChange)
 %  Freesufer subject folder:
 %     *.CT: The RAS coordinates of electrodes before any correction for 
 %           postimplant brain shift
-%     *.DURAL: The dural surface RAS coordinates of electrodes after 
+%     *.LEPTO: The leptomeningeal surface RAS coordinates of electrodes after 
 %           correction for postimplant brain shift. Depth electrode 
 %           coordinates are the same as in *.CT
-%     *.DURALVOX: The dural surface voxel coordinates of electrodes after 
+%     *.LEPTOVOX: The leptomeningeal surface voxel coordinates of electrodes after 
 %           correction for postimplant brain shift. Voxel coordinates 
 %           are for brainmask.nii.gz file also in the elec_recon folder. 
 %           Depth electrode coordinates are the same as in *.CT
@@ -130,8 +130,8 @@ fprintf('%d Subdural electrodes\n',length(sduralIds));
 
 
 %% Initialize Coordinate Variables
-duralRAS=ctRAS;
-duralVOX=zeros(nElec,3);
+leptoRAS=ctRAS;
+leptoVOX=zeros(nElec,3);
 infRAS=zeros(nElec,3)*NaN;
 pialRAS=ctRAS;
 pialVOX=zeros(nElec,3);
@@ -167,7 +167,7 @@ for hemLoop=0:1,
             hem='l';
         end
         
-        %% Load Dural Surface
+        %% Load Leptomeningeal Surface
         surftype='pial-outer-smoothed';
         [surf.vert surf.tri]=read_surf(fullfile(surfPath,[hem 'h.' surftype]));
         
@@ -175,17 +175,17 @@ for hemLoop=0:1,
         useIds=intersect(hemIds,sduralIds);
         if ~isempty(useIds)
             if universalYes(minimizeChange)
-                % Project subdural electrodes to dural surface while minimizing
+                % Project subdural electrodes to leptomeningeal surface while minimizing
                 % distortion
-                coordDural=snap2dural_energy(jitCtRAS(useIds,:),surf);
+                coordLepto=snap2dural_energy(jitCtRAS(useIds,:),surf);
             else
-                %Simply assign subdural electrodes to the nearest dural vertex
-                coordDural=get_loc_snap_mgh(jitCtRAS(useIds,:),surfPath,hem,'pial-outer-smoothed');
+                %Simply assign subdural electrodes to the nearest leptomeningeal vertex
+                coordLepto=get_loc_snap_mgh(jitCtRAS(useIds,:),surfPath,hem,'pial-outer-smoothed');
             end
-            duralRAS(useIds,:)=coordDural;
+            leptoRAS(useIds,:)=coordLepto;
             
-            %% Project dural locations to pial surface
-            pialRAS(useIds,:)=get_loc_snap_mgh(coordDural,surfPath,hem,'pial');
+            %% Project leptomeningeal locations to pial surface
+            pialRAS(useIds,:)=get_loc_snap_mgh(coordLepto,surfPath,hem,'pial');
         end
     end
 end
@@ -221,16 +221,16 @@ for a=1:nElec,
 end
 fclose(fidCt);
 
-% Dural RAS COORDINATES
-fnameDuralRAS = fullfile(elecReconPath,[sub '.DURAL']);
-fprintf('Saving Dural RAS electrode locations to: %s\n',fnameDuralRAS);
-fidDural=fopen(fnameDuralRAS,'w');
-fprintf(fidDural,'%s\n',datestr(now));
-fprintf(fidDural,'R A S\n');
+% Lepto RAS COORDINATES
+fnameLeptoRAS = fullfile(elecReconPath,[sub '.LEPTO']);
+fprintf('Saving Lepto RAS electrode locations to: %s\n',fnameLeptoRAS);
+fidLepto=fopen(fnameLeptoRAS,'w');
+fprintf(fidLepto,'%s\n',datestr(now));
+fprintf(fidLepto,'R A S\n');
 for a=1:nElec,
-    fprintf(fidDural,'%f %f %f\n',duralRAS(a,1),duralRAS(a,2),duralRAS(a,3));
+    fprintf(fidLepto,'%f %f %f\n',leptoRAS(a,1),leptoRAS(a,2),leptoRAS(a,3));
 end
-fclose(fidDural);
+fclose(fidLepto);
 
 % Pial RAS COORDINATES
 fnamePialRAS = fullfile(elecReconPath,[sub '.PIAL']);
@@ -244,18 +244,18 @@ end
 fclose(fidPial);
 
 %%%%%% Output VOX Coordinates to Text Files %%%%%%%%%
-% Dural VOX COORDINATES
+% Lepto VOX COORDINATES
 RAS2VOX=inv(VOX2RAS);
-duralVOX=(RAS2VOX*[duralRAS'; ones(1, nElec)])';
-fnameDuralVOX = fullfile(elecReconPath,[sub '.DURALVOX']);
-fprintf('Saving dural VOX electrode locations to: %s\n',fnameDuralVOX);
-fidDuralVox=fopen(fnameDuralVOX,'w');
-fprintf(fidDuralVox,'%s\n',datestr(now));
-fprintf(fidDuralVox,'X Y Z\n');
+leptoVOX=(RAS2VOX*[leptoRAS'; ones(1, nElec)])';
+fnameLeptoVOX = fullfile(elecReconPath,[sub '.LEPTOVOX']);
+fprintf('Saving lepto VOX electrode locations to: %s\n',fnameLeptoVOX);
+fidLeptoVox=fopen(fnameLeptoVOX,'w');
+fprintf(fidLeptoVox,'%s\n',datestr(now));
+fprintf(fidLeptoVox,'X Y Z\n');
 for a=1:nElec,
-    fprintf(fidDuralVox,'%f %f %f\n',duralVOX(a,1),duralVOX(a,2),duralVOX(a,3));
+    fprintf(fidLeptoVox,'%f %f %f\n',leptoVOX(a,1),leptoVOX(a,2),leptoVOX(a,3));
 end
-fclose(fidDuralVox);
+fclose(fidLeptoVox);
 
 % Pial VOX COORDINATES
 pialVOX=(RAS2VOX*[pialRAS'; ones(1, nElec)])';
@@ -283,7 +283,7 @@ fclose(fidInf);
 
 
 %% Plot results to double check
-plotCtVsDural(sub,1,1);
+plotCtVsLepto(sub,1,1);
 
 % close diary
 fprintf('\nElectrodes Localization finished for %s',sub);
