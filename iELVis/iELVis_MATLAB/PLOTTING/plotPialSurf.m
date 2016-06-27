@@ -14,7 +14,7 @@
 %    Electrode Options:
 %     elecCoord            -If 'n', no electrodes will be rendered in the
 %                           figure.  If 'y', electrode coordinates will be
-%                           taken from *.DURAL file in patient's
+%                           taken from *.LEPTO file in patient's
 %                           FreeSurfer folder.  Alternatively, you
 %                           can pass a 2D matrix of coordinates
 %                           instead. The first 3 columns of such a matrix
@@ -28,8 +28,8 @@
 %     elecShape            -'marker' or 'sphere': The shape used to
 %                           represent electrodes. {default: 'marker'}
 %     elecColors           -2D matrix of colors to fill electrodes
-%                           (rows=electrodes, columns=RGB values) or a vector
-%                           of values that will be automatically converted
+%                           (rows=electrodes, columns=RGB values), a column 
+%                           vector of values that will be automatically converted
 %                           into a color scale, or 'r' to make all red.
 %                           {default: all electrodes filled with black}
 %     edgeBlack            -If 'y', electrodes will all have a black
@@ -145,11 +145,10 @@
 %                           Replace 'l' with 'r' to get these views of the
 %                           right hemisphere. Alternatively, you can define
 %                           everything yourself like so:
-%                                   brainView.light
-%                                   brainView.hem
-%                                   light: [1 0 0]
-%                                   eyes: [45 0]
-%                                   hem: 'r'
+%                                   brainView.light=[1 0 0];
+%                                   brainView.hem='r';
+%                                   brainView.eyes=[45 0]
+%                                   cfg.view=brainView
 %
 %    Neuroimaging Options:
 %     pialOverlay          -Filename or cell array of filenames of
@@ -680,7 +679,6 @@ alpha(opaqueness);
 
 
 %% PLOT ELECTRODES (optional)
-%elecSphere=0; %default
 if universalNo(elecCoord)
     verbReport('...not plotting electrodes',2,verbLevel);
 else
@@ -702,7 +700,7 @@ else
                 cfg_pvox2inf.fsurfSubDir=fsDir;
                 cfg_pvox2inf.elecCoord=elecCoord(showElecIds,:);
                 cfg_pvox2inf.elecNames=color_elecnames;
-                RAS_coor=pial2InfBrain(fsSub,cfg_pvox2inf); 
+                RAS_coor=pial2InfBrain(fsSub,cfg_pvox2inf);
             else
                 RAS_coor=RAS_coor(showElecIds,:);
             end
@@ -710,13 +708,13 @@ else
             error('...Electrode input is numeric but doesn''t have 3 coordinates + binary hemisphere column');
         end
     else
-        % electrode coordinates and names to be read from .DURAL and .electrodeNames files
-        verbReport(sprintf('...Overlaying electrodes. Taking coordinates from %s.DURAL and %s.electrodeNames in elec_recon folder. Use cfg.eleccord=''n''; if not wanted.',fsSub,fsSub), ...
+        % electrode coordinates and names to be read from .LEPTO and .electrodeNames files
+        verbReport(sprintf('...Overlaying electrodes. Taking coordinates from %s.LEPTO and %s.electrodeNames in elec_recon folder. Use cfg.eleccord=''n''; if not wanted.',fsSub,fsSub), ...
             2,verbLevel);
         if strcmpi(surfType,'inflated')
             coordFname=fullfile(fsDir,fsSub,'elec_recon',[fsSub '.INF']);
         else
-            coordFname=fullfile(fsDir,fsSub,'elec_recon',[fsSub '.DURAL']);
+            coordFname=fullfile(fsDir,fsSub,'elec_recon',[fsSub '.LEPTO']);
         end
         elecCoordCsv=csv2Cell(coordFname,' ',2);
         nElecTotal=size(elecCoordCsv,1);
@@ -821,7 +819,9 @@ else
     elseif ischar(elecColors) && strcmp(elecColors,'r')
         elecColors = zeros(size(RAS_coor));
         elecColors(:,1) = 1;
-    elseif isvector(elecColors)
+    elseif isvector(elecColors) && size(elecColors,2)~=3
+        % we need the second condition in case wants to plot a single
+        % electrode and passes an rgb vector to specify the color
         if isnumeric(elecColorScale)
             type='minmax';
             elecCbarMin=elecColorScale(1);
@@ -843,7 +843,15 @@ else
             [elecColors, elecLimits, elecCmapName]=vals2Colormap(elecColors,type,elecCmapName,[elecCbarMin elecCbarMax]);
         end
     else
-        % DG ?? to do, grab elecCbarMin and elecCbarMax from optional inputs when matrix of rgb values passed elecCbarMin=min(
+        % elecColorScale consists of a matrix or vector of RGB values
+        if ~universalNo(elecCbar),
+            if isnumeric(elecColorScale) && isvector(elecColorScale) && length(elecColorScale)==2
+                elecCbarMin=min(elecColorScale);
+                elecCbarMin=max(elecColorScale);
+            else
+                error('When cfg.elecColors is a matrix of RGB values, elecColorScale needs to specify the min and max of the colorscale.');
+            end
+        end
     end
     if ~isempty(color_elecnames),
         n_color_electrodes=length(color_elecnames);
@@ -873,6 +881,12 @@ else
         elecSphere=0;
     end
     
+    % Check to make sure colored electrodes have unique names
+    if ~isempty(color_elecnames)
+       if length(color_elecnames)~=length(unique(color_elecnames)) 
+           error('cfg.elecNames has multiple entries with the exact same electrode name.');
+       end
+    end
     
     for j = 1:nRAS
         if ismember(lower(elecNames{j}),lower(onlyShow)),
@@ -1309,6 +1323,7 @@ for h=1:2,
         sub_cfg_out=plotPialSurf(fsSub,sub_cfg);
         
         % Get electrode colormap limits
+        
         if isempty(elecUsedLimits)
             if isfield(sub_cfg_out,'elecCbarLimits')
                 elecUsedLimits=sub_cfg_out.elecCbarLimits;
@@ -1324,8 +1339,12 @@ for h=1:2,
             end
         end
         
+        if isempty(elecCmapName) && isfield(sub_cfg_out,'elecCmapName')
+            elecCmapName=sub_cfg_out.elecCmapName;
+        end
     end
 end
+
 
 %% DRAW COLORBAR(S)
 if universalYes(elecCbar) && universalYes(olayCbar),

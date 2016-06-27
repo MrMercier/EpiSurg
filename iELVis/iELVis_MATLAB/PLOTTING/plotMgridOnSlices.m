@@ -200,7 +200,7 @@ for elecId=1:nElec,
             axis([tempMin tempMax tempMin tempMax]);
         end
         set(gca,'xtick',[],'ytick',[],'xdir','reverse');
-        set(hm(2),'color',elecRgb(elecId,:),'markersize',markerSize);
+        
         
         %subplot(133);
         axes('position',[xStart+wDelt*2 yStart wdth ht]);

@@ -1,5 +1,5 @@
-function [figH, axH]=plotCtVsDural(sub,printEm,plotPial)
-%function [figH, axH]=plotCtVsDural(sub,printEm,plotPial)
+function [figH, axH]=plotCtVsLepto(sub,printEm,plotPial)
+%function [figH, axH]=plotCtVsLepto(sub,printEm,plotPial)
 %
 % This function creates two plots to illustrate the effect of brain shift
 % correction:
@@ -11,18 +11,26 @@ function [figH, axH]=plotCtVsDural(sub,printEm,plotPial)
 %
 % This function is called pial by interpStripElec.m and yangWangElecPjct.m
 %
+% Inputs:
+%  sub - Subject's FreeSurfer name/folder
+%  printEm  - If nonzero, copies of the images are output the
+%             "elec_recon/PICS" subfolder of the subject's FreeSurfer folder
+%  plotPial - If nonzero, a figure is created that illustrateds
+%             post-brainshift corrected electrodes color coded by the extent of
+%             brainshift correction.
+%
 % Author: David Groppe
 % Honeylab, Univ. of Toronto
 % June 2015
 
-% Load dural and CT coordinates
+% Load lepto and CT coordinates
 fsDir=getFsurfSubDir();
 %erPath=[fsDir sub '/elec_recon/'];
 erPath=fullfile(fsDir,sub,'elec_recon');
-duralFname=fullfile(erPath,[sub '.DURAL']);
-%duralFname=[erPath sub '.DURAL'];
-duralCsv=csv2Cell(duralFname,' ',2);
-nChan=size(duralCsv,1);
+leptoFname=fullfile(erPath,[sub '.LEPTO']);
+%leptoFname=[erPath sub '.LEPTO'];
+leptoCsv=csv2Cell(leptoFname,' ',2);
+nChan=size(leptoCsv,1);
 
 % Load elec names etc..
 chanFname=fullfile(erPath,[sub '.electrodeNames']);
@@ -34,18 +42,18 @@ chanHem=chanInfo(:,3);
 ctFname=fullfile(erPath,[sub '.CT']);
 ctCsv=csv2Cell(ctFname,' ',2);
 
-duralRAS=zeros(nChan,3);
+leptoRAS=zeros(nChan,3);
 ctRAS=zeros(nChan,3);
 for a=1:nChan,
     for b=1:3,
         ctRAS(a,b)=str2num(ctCsv{a,b});
-        duralRAS(a,b)=str2num(duralCsv{a,b});
+        leptoRAS(a,b)=str2num(leptoCsv{a,b});
     end
 end
 
 
 %% Plot results to double check
-shiftDist=sqrt( sum( (duralRAS-ctRAS).^2,2)); %units are mm
+shiftDist=sqrt( sum( (leptoRAS-ctRAS).^2,2)); %units are mm
 
 %rgb=zeros(nElec,3);
 rgb=vals2Colormap(shiftDist,'justpos');
@@ -81,13 +89,14 @@ axis([1 length(shiftDist) v(3:4)]);
 
 %3D plot of and pre vs. post shift correction locations
 axH(2)=subplot(122);
-for a=1:length(shiftDist),
-    h=plot3(duralRAS(a,1),duralRAS(a,2),duralRAS(a,3),'r.'); hold on;
+for a=1:nChan,
+    h=plot3(leptoRAS(a,1),leptoRAS(a,2),leptoRAS(a,3),'r.'); hold on;
+    set(h,'color',rgb(a,:),'markersize',25);
     clickText(h,chanName{a});
     h=plot3(ctRAS(a,1),ctRAS(a,2),ctRAS(a,3),'bo');
     %clickText(h,rm_substring(labels{a},'_'));
     clickText(h,chanName{a});
-    plot3([duralRAS(a,1) ctRAS(a,1)],[duralRAS(a,2) ctRAS(a,2)],[duralRAS(a,3) ctRAS(a,3)],'k-');
+    plot3([leptoRAS(a,1) ctRAS(a,1)],[leptoRAS(a,2) ctRAS(a,2)],[leptoRAS(a,3) ctRAS(a,3)],'k-');
 end
 if mean(leftHem)>=0.5,
     % Left electrode majority
@@ -101,6 +110,21 @@ title('Red=Postcorrection, Blue=Precorrection');
 xlabel('Left- Right+');
 ylabel('Pos- Ant+');
 zlabel('Inf- Sup+');
+
+if universalYes(printEm)
+    % Make sure PICS directory exists
+    outPath=fullfile(erPath,'PICS');
+    if ~exist(outPath,'dir')
+        dirSuccess=mkdir(outPath);
+        if ~dirSuccess,
+            error('Could not create directory %s',dirSuccess);
+        end
+    end
+    outFigFname=fullfile(outPath,sprintf('%s_ShiftDist.jpg',sub));
+    print(figH(1),'-djpeg',outFigFname);
+    outFigFname=fullfile(outPath,sprintf('%s_ShiftDist',sub));
+    saveas(figH(1),[outFigFname '.fig']); % PM edit 20160405
+end
 
 % Plot shift distances on pial surface
 if ~isempty(non_depth_ids)
@@ -123,28 +147,12 @@ if ~isempty(non_depth_ids)
         cfg.elecUnits='mm';
         cfg.elecNames=chanName;
         cfg.showLabels='n';
-        cfg.title=sprintf('%s: CT to Dural distance',sub);
-        cfg_out=plotPialSurf(sub,cfg);
+        cfg.title=sprintf('%s: CT to Leptomeningeal distance',sub);
+        plotPialSurf(sub,cfg);
         
         if universalYes(printEm)
-            % Make sure PICS directory exists
-            outPath=fullfile(erPath,'PICS');
-            if ~exist(outPath,'dir')
-                dirSuccess=mkdir(outPath);
-                if ~dirSuccess,
-                    error('Could not create directory %s',dirSuccess);
-                end
-            end
-            outFigFname=fullfile(outPath,sprintf('%s_ShiftDist.jpg',sub));
-            %outFigFname=sprintf('%s/PICS/electrodes/%s_ShiftDist.jpg',erPath,sub);
-            print(figH(1),'-djpeg',outFigFname);
-            outFigFname=fullfile(outPath,sprintf('%s_ShiftDist',sub));
-            %outFigFname=sprintf('%s/PICS/electrodes/%s_ShiftDist',erPath,sub);
-            %savefig(figH(1),outFigFname); % PM edit 20160405
-            saveas(figH(1),[outFigFname '.fig']);
             outFigFname=fullfile(outPath,sprintf('%s_ShiftDistOnBrain.jpg',sub));
-            %outFigFname=sprintf('%s/PICS/electrodes/%s_ShiftDistOnBrain.jpg',erPath,sub);
             print(figH(2),'-djpeg',outFigFname);
         end
-    end
+    end 
 end

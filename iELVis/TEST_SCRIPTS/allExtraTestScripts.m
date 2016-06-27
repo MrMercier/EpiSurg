@@ -5,6 +5,9 @@ testBrainShiftExtra;
 testElecVisualizationExtra;
 
 %%
+testAvgBrainMappingExtra;
+
+%%
 testImagingOverlaysExtra;
 
 %%

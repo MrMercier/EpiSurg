@@ -16,7 +16,7 @@ function yangWangElecPjct(sub)
 %  Freesufer subject folder:
 %    *.PIAL - RAS coordinates snapped to pial surface
 %    *.PIALVOX - Voxel coordinates snapped to pial surface
-%    *.DURAL - RAS coordinates snapped to dural (i.e., smoothed pial)
+%    *.LEPTO - RAS coordinates snapped to leptomeningeal (i.e., smoothed pial)
 %                  surface)
 %    *.electrodeNames - electrode names
 %    localization_process_date.log - Record of command line output produced
@@ -155,11 +155,11 @@ end
 ntools_elec_outer_brain(subPath); % If smoothed pial surface has NOT been created, I believe this function fails. DG
 
 % Initialize text file Ids
-fidDural=[];
+fidLepto=[];
 fidPial=[];
 fidCT=[];
 fidLabels=[];
-fidDuralVox=[];
+fidLeptoVox=[];
 fidPialVox=[];
 
 %% Calculate electrode locations with correction for brain shift
@@ -284,8 +284,8 @@ for hemLoop=1:2,
         
         
         %% Save the electrodes locations as text files
-        duralRAS=zeros(nElecThisHem,3);
-        ctRAS=duralRAS;
+        leptoRAS=zeros(nElecThisHem,3);
+        ctRAS=leptoRAS;
         elecStems=cell(nElecThisHem,1);
         elecNums=zeros(nElecThisHem,1);
         elecType=cell(nElecThisHem,1);
@@ -303,14 +303,14 @@ for hemLoop=1:2,
                    elecNums(ct));
             end
             for b=1:3,
-                duralRAS(ct,b)=elec_grid{a,b+2};
+                leptoRAS(ct,b)=elec_grid{a,b+2};
                 ctRAS(ct,b)=elec_gridCT{tempId,b+2};
             end
         end
         for a=1:nStripThisHem,
             ct=ct+1;
             for b=1:3,
-                duralRAS(ct,b)=elec_strip{a,b+2};
+                leptoRAS(ct,b)=elec_strip{a,b+2};
                 ctRAS(ct,b)=elec_stripCT{a,b+2};
             end
             elecStems{ct}=elec_strip{a,1};
@@ -320,7 +320,7 @@ for hemLoop=1:2,
         for a=1:nDepthThisHem,
             ct=ct+1;
             for b=1:3,
-                duralRAS(ct,b)=elec_depth{a,b+2};
+                leptoRAS(ct,b)=elec_depth{a,b+2};
                 ctRAS(ct,b)=elec_depthCT{a,b+2};
             end
             elecStems{ct}=elec_depth{a,1};
@@ -329,16 +329,16 @@ for hemLoop=1:2,
         end
         
         % RAS COORDINATES
-        % Dural
-        fnameDuralRAS = fullfile(elecReconPath,[sub '.DURAL']);
-        fprintf('Saving dural RAS electrode locations to: %s\n',fnameDuralRAS);
-        if isempty(fidDural)
-            fidDural=fopen(fnameDuralRAS,'w');
-            fprintf(fidDural,'%s\n',datestr(now));
-            fprintf(fidDural,'R A S\n');
+        % Lepto
+        fnameLeptoRAS = fullfile(elecReconPath,[sub '.LEPTO']);
+        fprintf('Saving lepto RAS electrode locations to: %s\n',fnameLeptoRAS);
+        if isempty(fidLepto)
+            fidLepto=fopen(fnameLeptoRAS,'w');
+            fprintf(fidLepto,'%s\n',datestr(now));
+            fprintf(fidLepto,'R A S\n');
         end
         for a=1:nElecThisHem,
-            fprintf(fidDural,'%f %f %f\n',duralRAS(a,1),duralRAS(a,2),duralRAS(a,3));
+            fprintf(fidLepto,'%f %f %f\n',leptoRAS(a,1),leptoRAS(a,2),leptoRAS(a,3));
         end
         
         % Pial
@@ -379,16 +379,16 @@ for hemLoop=1:2,
         
         % VOX COORDINATES
         RAS2VOX=inv(VOX2RAS);
-        duralVOX=(RAS2VOX*[duralRAS'; ones(1, nElecThisHem)])';
-        fnameDuralVOX = fullfile(elecReconPath,[sub '.DURALVOX']);
-        fprintf('Saving dural VOX electrode locations to: %s\n',fnameDuralVOX);
-        if isempty(fidDuralVox)
-            fidDuralVox=fopen(fnameDuralVOX,'w');
-            fprintf(fidDuralVox,'%s\n',datestr(now));
-            fprintf(fidDuralVox,'X Y Z\n');
+        leptoVOX=(RAS2VOX*[leptoRAS'; ones(1, nElecThisHem)])';
+        fnameLeptoVOX = fullfile(elecReconPath,[sub '.LEPTOVOX']);
+        fprintf('Saving lepto VOX electrode locations to: %s\n',fnameLeptoVOX);
+        if isempty(fidLeptoVox)
+            fidLeptoVox=fopen(fnameLeptoVOX,'w');
+            fprintf(fidLeptoVox,'%s\n',datestr(now));
+            fprintf(fidLeptoVox,'X Y Z\n');
         end
         for a=1:nElecThisHem,
-            fprintf(fidDuralVox,'%f %f %f\n',duralVOX(a,1),duralVOX(a,2),duralVOX(a,3));
+            fprintf(fidLeptoVox,'%f %f %f\n',leptoVOX(a,1),leptoVOX(a,2),leptoVOX(a,3));
         end
         
         pialVOX=(RAS2VOX*[pialRAS'; ones(1, nElecThisHem)])';
@@ -407,11 +407,11 @@ for hemLoop=1:2,
 end
 
 %% Close text files
-fclose(fidDural);
+fclose(fidLepto);
 fclose(fidPial);
 fclose(fidCT);
 fclose(fidLabels);
-fclose(fidDuralVox);
+fclose(fidLeptoVox);
 fclose(fidPialVox);
 
 
@@ -429,7 +429,7 @@ fclose(fidInf);
 
 
 %% Plot results to double check
-plotCtVsDural(sub,1,1);
+plotCtVsLepto(sub,1,1);
 
 
 %% save all into binary nifti image
