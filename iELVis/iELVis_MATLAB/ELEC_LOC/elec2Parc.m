@@ -14,6 +14,7 @@
 %           'D' =Destrieux
 %           'Y7'=Yeo 7-network resting state fMRI atlas
 %           'Y17'=Yeo 17-network resting state fMRI atlas
+%           'fullpath2parcfile'=Some annotation file defined by you.
 %
 % Output:
 %   elecParc - 2D cell array containing electrode names and their
@@ -114,22 +115,26 @@ for hemLoop=1:2,
         nVertex=length(cort.vert);
         
         %% Get cortical parcellation
-        switch upper(atlas)
-            case 'DK'
-                parcFname=fullfile(labelFolder,[lower(hem) 'h.aparc.annot']);
-                [~, label, colortable]=read_annotation(parcFname);
-                %[averts,label,colortable]=read_annotation(parcFname);
-            case 'D'
-                parcFname=fullfile(labelFolder,[lower(hem) 'h.aparc.a2009s.annot']);
-                [~, label, colortable]=read_annotation(parcFname);
-            case 'Y7'
-                parcFname=fullfile(labelFolder,[lower(hem) 'h_Yeo2011_7Networks_N1000.mat']);
-                load(parcFname);
-            case 'Y17'
-                parcFname=fullfile(labelFolder,[lower(hem) 'h_Yeo2011_17Networks_N1000.mat']);
-                load(parcFname);
-            otherwise
-                error('Unrecognized value of atlas argument.')
+        if exist(atlas,'file')
+            [~, label, colortable]=read_annotation(atlas);
+        else
+            switch upper(atlas)
+                case 'DK'
+                    parcFname=fullfile(labelFolder,[lower(hem) 'h.aparc.annot']);
+                    [~, label, colortable]=read_annotation(parcFname);
+                    %[averts,label,colortable]=read_annotation(parcFname);
+                case 'D'
+                    parcFname=fullfile(labelFolder,[lower(hem) 'h.aparc.a2009s.annot']);
+                    [~, label, colortable]=read_annotation(parcFname);
+                case 'Y7'
+                    parcFname=fullfile(labelFolder,[lower(hem) 'h_Yeo2011_7Networks_N1000.mat']);
+                    load(parcFname);
+                case 'Y17'
+                    parcFname=fullfile(labelFolder,[lower(hem) 'h_Yeo2011_17Networks_N1000.mat']);
+                    load(parcFname);
+                otherwise
+                    error('Unrecognized value of atlas argument.')
+            end
         end
         
         for elecLoop=1:nElecThisHem,
