@@ -35,6 +35,7 @@ mkdir $newFolder/elec_recon
 cp $fsDir/elec_recon/*.nii.gz $newFolder/elec_recon/.
 cp $fsDir/elec_recon/$1.mgrid $newFolder/elec_recon/.
 cp $fsDir/elec_recon/*.DURAL* $newFolder/elec_recon/.
+cp $fsDir/elec_recon/*.LEPTO* $newFolder/elec_recon/.
 cp $fsDir/elec_recon/*.PIAL* $newFolder/elec_recon/.
 cp $fsDir/elec_recon/*.INF* $newFolder/elec_recon/.
 cp $fsDir/elec_recon/*.CT* $newFolder/elec_recon/.
