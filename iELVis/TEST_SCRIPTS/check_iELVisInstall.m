@@ -76,7 +76,7 @@ cfgOut=plotPialSurf('PT001',cfg);
 
 %% Test avg brain mapping
 disp('Checking mapping to average brain on demo data PT001...');
-[avgCoords, elecNames, isLeft]=pial2AvgBrain('PT001',[]);
+[avgCoords, elecNames, isLeft]=sub2AvgBrain('PT001',[]);
 
 
 %% Test assigning electrodes to atlas areas
