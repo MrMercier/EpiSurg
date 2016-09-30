@@ -3,4 +3,5 @@ iELVis/PRIVATE_FILES
 *.dat
 *.dat.*
 *.mgh
+.DS_Store
 diary

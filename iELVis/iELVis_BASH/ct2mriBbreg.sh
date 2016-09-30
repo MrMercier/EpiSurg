@@ -21,10 +21,6 @@ if [ "$#" = 0 ]; then
  exit 2
 fi
 
-
-
-
-
 sub=$1
 fsDir=$SUBJECTS_DIR/$sub
 if [ ! -d $fsDir ]; then
