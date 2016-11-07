@@ -15,8 +15,8 @@ function plotMgridOnSlices(fsSub,cfg)
 %              location. {default: 0}
 %  markerSize - The size of the dot in each slice used to represent an
 %              electrode's location. {default: 30}
-%  cntrst    - 0< number <=1 The lower this number the lower the brighter
-%              the image (i.e., the lower the voxel value corresponding to 
+%  cntrst    - 0< number <=1 The lower this number, the lower the brightness
+%              of the image (i.e., the lower the voxel value corresponding to 
 %              white). {default: 0.5}
 %  anatOverlay- If 1, color is overlayed on the brain to show FreeSurfer's
 %              automatic segmentation of brain areas (neocortex uses 
