@@ -8,7 +8,7 @@ function [avgCoords, elecNames, isLeft, avgVids, subVids]=sub2AvgBrain(subj,cfg)
 % MNI305 space with an affine transformation; these coordinates too can be
 % visualized on the FreeSurfer average brain.
 %
-% Inputs:
+% Input:
 %   subj = FreeSurfer subject name
 %
 % Optional Inputs: passed as fields in a configuration structure
