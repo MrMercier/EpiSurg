@@ -13,14 +13,17 @@
 %
 %    Electrode Options:
 %     elecCoord            -If 'n', no electrodes will be rendered in the
-%                           figure.  If 'y', electrode coordinates will be
-%                           taken from *.LEPTO file in patient's
+%                           figure.  Alternative, you can specify 'LEPTO',
+%                           'CT','PIAL', or 'INF' to use the coordinates
+%                           with those extensions in the patients elec_recon
+%                           folder. *.LEPTO file in patient's
 %                           FreeSurfer folder.  Alternatively, you
 %                           can pass a 2D matrix of coordinates
 %                           instead. The first 3 columns of such a matrix
 %                           should be RAS coordinates and the fourth column
 %                           is a binary matrix that is 1 if the electrode
-%                           is on/in the left hemisphere. {default: 'y'}
+%                           is on/in the left hemisphere. {default: 'LEPTO'
+%                           for non-inflated brain, 'INF' for inflated brain}
 %     elecSize             -Size of electrode markers (disks or spheres).
 %                           This also determines thickness of lines connecting
 %                           electrodes (if any) and electrode labels (if
@@ -322,7 +325,7 @@ function cfgOut=plotPialSurf(fsSub,cfg)
 if ~isfield(cfg, 'elecSize'),       elecSize = 8;          else  elecSize = cfg.elecSize;      end
 if ~isfield(cfg, 'snap2surf'),      snap2surf = 0;         else  snap2surf = cfg.snap2surf;      end
 if ~isfield(cfg, 'surfType'),       surfType = 'pial';     else  surfType = cfg.surfType;     end
-if ~isfield(cfg, 'elecCoord'),      elecCoord= 'yes';      else  elecCoord = cfg.elecCoord;       end
+if ~isfield(cfg, 'elecCoord'),      elecCoord= 'LEPTO';      else  elecCoord = cfg.elecCoord;       end
 if ~isfield(cfg, 'elecColors'),     elecColors= [];        else  elecColors = cfg.elecColors;        end
 if ~isfield(cfg, 'elecColorScale'), elecColorScale='absmax';   else elecColorScale=cfg.elecColorScale; end
 if ~isfield(cfg, 'elecCbar'),       elecCbar=[];          else elecCbar=cfg.elecCbar; end
@@ -594,7 +597,7 @@ if overlayParcellation,
     clear locTable;
     hTsurf=trisurf(cort.tri, cort.vert(:, 1), cort.vert(:, 2), cort.vert(:, 3),...
         'FaceVertexCData', fvcdat,'FaceColor', 'interp','FaceAlpha',1);
-    if ~strcmpi(elecCoord,'no') && ~strcmpi(elecCoord,'n')
+    if ~universalNo(elecCoord),
         cfg_elec2parc=[];
         cfg_elec2parc.fsurfSubDir=fsDir;
         if isnumeric(elecCoord)
@@ -705,14 +708,19 @@ else
             error('...Electrode input is numeric but doesn''t have 3 coordinates + binary hemisphere column');
         end
     else
-        % electrode coordinates and names to be read from .LEPTO and .electrodeNames files
-        verbReport(sprintf('...Overlaying electrodes. Taking coordinates from %s.LEPTO and %s.electrodeNames in elec_recon folder. Use cfg.eleccord=''n''; if not wanted.',fsSub,fsSub), ...
-            2,verbLevel);
+        % electrode coordinates and names to be read from elec_recon folder
+        % files
+        coordType=elecCoord;
         if strcmpi(surfType,'inflated')
-            coordFname=fullfile(fsDir,fsSub,'elec_recon',[fsSub '.INF']);
-        else
-            coordFname=fullfile(fsDir,fsSub,'elec_recon',[fsSub '.LEPTO']);
+            if ~strcmp(coordType,'INF'),
+                coordType='INF';
+                warning('Using *.INF electrode coordinates as this is required for inflated brain.');
+            end
         end
+        coordFname=fullfile(fsDir,fsSub,'elec_recon',[fsSub '.' coordType]);
+        % ?? coordFname=fullfile(fsDir,fsSub,'elec_recon',[fsSub '.LEPTO']);
+        verbReport(sprintf('...Overlaying electrodes. Taking coordinates from %s.%s and %s.electrodeNames in elec_recon folder. Use cfg.eleccord=''n''; if not wanted.', ...
+            fsSub,coordType,fsSub),2,verbLevel);
         elecCoordCsv=csv2Cell(coordFname,' ',2);
         nElecTotal=size(elecCoordCsv,1);
         RAS_coor=zeros(nElecTotal,3);
@@ -1124,7 +1132,7 @@ if ~isfield(cfg, 'figId'),         hFig=[];            else  hFig=cfg.figId; end
 if ~isfield(cfg, 'olayThresh'),       olayThresh=[];          else  olayThresh = cfg.olayThresh; end
 if ~isfield(cfg, 'figId'),         hFig=[];              else  hFig=cfg.figId; end
 if ~isfield(cfg, 'fsurfSubDir'),   fsDir=[];             else fsDir=cfg.fsurfSubDir; end
-if ~isfield(cfg, 'elecCoord'),      elecCoord='yes';      else  elecCoord = cfg.elecCoord;       end
+if ~isfield(cfg, 'elecCoord'),      elecCoord='LEPTO';      else  elecCoord = cfg.elecCoord;       end
 if ~isfield(cfg, 'elecSize'),       elecSize=8;          else  elecSize = cfg.elecSize;      end
 if ~isfield(cfg, 'elecColors'),     elecColors=[];        else  elecColors = cfg.elecColors;        end
 if ~isfield(cfg, 'elecColorScale'),   elecColorScale='absmax';   else elecColorScale=cfg.elecColorScale; end
@@ -1379,7 +1387,7 @@ function sub_cfg_out=plotPialHemi(fsSub,cfg)
 if ~isfield(cfg, 'usemask'),       usemask=[];          else usemask=cfg.usemask; end
 if ~isfield(cfg, 'figId'),         hFig=[];            else  hFig=cfg.figId; end
 if ~isfield(cfg, 'fsurfSubDir'),   fsDir=[];             else fsDir=cfg.fsurfSubDir; end
-if ~isfield(cfg, 'elecCoord'),      elecCoord= 'yes';      else  elecCoord = cfg.elecCoord;       end
+if ~isfield(cfg, 'elecCoord'),      elecCoord= 'LEPTO';      else  elecCoord = cfg.elecCoord;       end
 if ~isfield(cfg, 'elecSize'),       elecSize = 8;          else  elecSize = cfg.elecSize;      end
 if ~isfield(cfg, 'elecColors'),     elecColors= [];        else  elecColors = cfg.elecColors;        end
 if ~isfield(cfg, 'elecColorScale'),   elecColorScale=[];   else elecColorScale=cfg.elecColorScale; end

@@ -34,6 +34,9 @@ cfg.title='PT001-2 on Avg. Brain';
 cfgOut=plotPialSurf('fsaverage',cfg);
 
 
+%% Test MNI305 mapping
+[avgCoords, elecNames]=subElecs2MNI305('PT001');
+
 
 %%
 disp('Script testAvgBrainMapping.m completed successfully.')
