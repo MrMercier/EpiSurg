@@ -578,6 +578,9 @@ if overlayParcellation,
             clear colortable label vertices
             actbl.table(1,1:3)=255*[1 1 1]*.7; %make medial wall the same shade of grey as functional plots
         end
+    elseif exist(overlayParcellation,'file')
+        [averts,albl,actbl]=read_annotation(overlayParcellation);
+        %  actbl.table(43,1:3)=255*[1 1 1]*.7; %make medial wall the same shade of grey as functional plots
     else
         error('overlayParcellation argument needs to take a value of ''D'',''DK'',''Y7'', or ''Y17''.');
     end
