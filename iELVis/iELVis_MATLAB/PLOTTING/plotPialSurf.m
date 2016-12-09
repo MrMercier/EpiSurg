@@ -100,7 +100,7 @@
 %     surfType             -'pial' or 'inflated': Type of Freesurfer surface
 %                           to plot. If inflated, gyri and sulci are marked
 %                           dark and light grey. {default='pial'};
-%     overlayParcellation -If 'DK', Freesurfer Desikan-Killiany (36 area)
+%     overlayParcellation  -If 'DK', Freesurfer Desikan-Killiany (36 area)
 %                           cortical parcellation is plotted on the surface.
 %                           If 'D', Freesurfer Destrieux (76 area)
 %                           parcellation is used. If 'Y7' or 'Y17', Yeo 
@@ -108,8 +108,13 @@
 %                           You need to first run createIndivYeoMapping.m
 %                           on the individual's data to create Y7 and & Y17 
 %                           mappings as they are not produced by default by 
-%                           recon-all. {default: not used}
-%     parcellationColors  -Optional N-by-3 numeric array with RGB indexes
+%                           recon-all. You can also input an annotation file
+%                           of your choice with fulpath. Be aware that if you 
+%                           plot with view = 'omni', you will have to input 
+%                           annotation files for the left and right hemisphere 
+%                           as a 1x2 cell array, and the filenames have to 
+%                           contain 'lh_' and 'rh_'.  {default: not used}
+%     parcellationColors   -Optional N-by-3 numeric array with RGB indexes
 %                           (0:255) for each of the ROIs in the
 %                           overlayParcellation. The colors for each ROI
 %                           need to be in the exact same order as that of
@@ -578,8 +583,11 @@ if overlayParcellation,
             clear colortable label vertices
             actbl.table(1,1:3)=255*[1 1 1]*.7; %make medial wall the same shade of grey as functional plots
         end
+    elseif exist(overlayParcellation,'file')
+        [averts,albl,actbl]=read_annotation(overlayParcellation);
+        %  actbl.table(43,1:3)=255*[1 1 1]*.7; %make medial wall the same shade of grey as functional plots
     else
-        error('overlayParcellation argument needs to take a value of ''D'',''DK'',''Y7'', or ''Y17''.');
+        error('overlayParcellation argument needs to take a value of ''D'',''DK'',''Y7'', ''Y17'', or fullpath to annotation file.');
     end
     if ~isempty(parcellationColors)
         if size(parcellationColors,1)~=size(actbl.table,1)
@@ -1307,6 +1315,30 @@ for h=1:2,
                     sub_cfg.elecSize=6;
                 end
                 sub_cfg.showLabels=showLabels;
+            end
+        end
+        
+        % If plotting annotations from files input by user, choose hemisphere
+        if isfield(sub_cfg,'overlayParcellation')
+            if iscell(sub_cfg.overlayParcellation) && length(sub_cfg.overlayParcellation)==2
+                
+                if ~isempty(strfind(sub_cfg.overlayParcellation{1},'lh_'))  && ~isempty(strfind(sub_cfg.overlayParcellation{2},'rh_'))
+                    lh_annot = sub_cfg.overlayParcellation{1};
+                    rh_annot = sub_cfg.overlayParcellation{2};
+                elseif ~isempty(strfind(sub_cfg.overlayParcellation{1},'rh_'))  && ~isempty(strfind(sub_cfg.overlayParcellation{2},'lh_'))
+                    lh_annot = sub_cfg.overlayParcellation{2};
+                    rh_annot = sub_cfg.overlayParcellation{1};
+                else
+                    error(['If you define parcellation files to overlay with omni view,'...
+                        'cfg.overlayParcellation has to be a cell array with the left and '...
+                        'right hemisphere annotation file. The file names (with fullpath) have to include either ''lh_'' or ''rh_''']);
+                end
+                
+                if h==1
+                    sub_cfg.overlayParcellation =  lh_annot;
+                elseif h==2
+                    sub_cfg.overlayParcellation =  rh_annot;
+                end
             end
         end
         
