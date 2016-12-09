@@ -20,7 +20,8 @@ function plotMgridOnSlices(fsSub,cfg)
 %              white). {default: 0.5}
 %  anatOverlay- If 1, color is overlayed on the brain to show FreeSurfer's
 %              automatic segmentation of brain areas (neocortex uses 
-%              Desikan-Killiany parcellation). {default: 0}
+%              Desikan-Killiany parcellation). Alternatively define the fullpath
+%              to another parcellation file. {default: 0}
 %  pauseOn   - If 1, Matlab pauses after each figure is made and waits for
 %              a keypress. {default: 0}
 %  printFigs - If 1, each figure is output to an eps file. {default: 0}
@@ -49,7 +50,7 @@ if ~isfield(cfg,'mgridFname'),    mgridFname=[];    else mgridFname=cfg.mgridFna
 if ~isfield(cfg,'fullTitle'),     fullTitle=0;      else fullTitle=cfg.fullTitle; end
 if ~isfield(cfg,'markerSize'),    markerSize=30;    else markerSize=cfg.markerSize; end
 if ~isfield(cfg,'cntrst'),    cntrst=.5;          else cntrst=cfg.cntrst; end
-if ~isfield(cfg,'anatOverlay'),    anatOverlay=.5;          else anatOverlay=cfg.anatOverlay; end
+if ~isfield(cfg,'anatOverlay'),    anatOverlay=.5;          else anatOverlay=1; end
 if ~isfield(cfg,'pauseOn'),    pauseOn=0;          else pauseOn=cfg.pauseOn; end
 if ~isfield(cfg,'printFigs'),    printFigs=0;          else printFigs=cfg.printFigs; end
 checkCfg(cfg,'plotMgridOnSlices.m');
@@ -69,12 +70,6 @@ mx=max(max(max(mri.vol)))*cntrst;
 mn=min(min(min(mri.vol)));
 sVol=size(mri.vol);
 
-% Load segmentation
-segFname=fullfile(fsdir,fsSub,'mri','aparc+aseg.mgz');
-if ~exist(mriFname,'file')
-   error('File %s not found.',mriFname); 
-end
-seg=MRIread(segFname);
 
 % Load mgrid
 % if strcmpi(mgridFname,'l') || strcmpi(mgridFname,'r')
@@ -99,8 +94,21 @@ for a=1:nElec,
     end
 end
 
+
 if universalYes(anatOverlay)
-    %% Load segmentation color table
+    
+    % Load segmentation
+    if ischar(cfg.anatOverlay)
+        segFname = cfg.anatOverlay;
+    else
+        segFname=fullfile(fsdir,fsSub,'mri','aparc+aseg.mgz');
+        if ~exist(mriFname,'file')
+            error('File %s not found.',mriFname);
+        end
+    end
+    seg=MRIread(segFname);
+    
+    % Load segmentation color table
     pathstr = fileparts(which('mgrid2matlab'));
     inFile=fullfile(pathstr,'FreeSurferColorLUTnoFormat.txt');
     if ~exist(inFile,'file')
