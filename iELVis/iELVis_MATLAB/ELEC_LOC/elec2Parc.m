@@ -150,7 +150,16 @@ for hemLoop=1:2,
                 [~, minId]=min(sum( (repmat(pialCoord(elecIdsThisHem(elecLoop),:),nVertex,1)-cort.vert).^2,2 ));
                 
                 % Grab parcellation label for that vertex
-                elecParc{elecIdsThisHem(elecLoop),2}=colortable.struct_names{find(colortable.table(:,5)==label(minId))};
+                switch label(minId),
+                    case 0,
+                        % DG: Freesurfer updated the vertex labels of
+                        % medial grey 'unknown' areas to 0 instead of
+                        % 1639705, which is problematic if you use the
+                        % iELVis version of FreeSurfer's MATLAB code.
+                        elecParc{elecIdsThisHem(elecLoop),2}='unknown';
+                    otherwise
+                        elecParc{elecIdsThisHem(elecLoop),2}=colortable.struct_names{find(colortable.table(:,5)==label(minId))};
+                end
             end
         end
         
