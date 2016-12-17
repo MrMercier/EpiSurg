@@ -10,19 +10,22 @@ function plotMgridOnSlices(fsSub,cfg)
 %
 % Optional cfg parameters:
 %  mgridFname - mgrid filename and path. If empty, name is assumed to be fsSub.mgrid. 
-%  fullTitle - If 1, the mgrid and mri voxel coordinates are displayed in
-%              the figure title along with the electrode name and anatomical 
-%              location. {default: 0}
+%  fullTitle  - If 1, the mgrid and mri voxel coordinates are displayed in
+%               the figure title along with the electrode name and anatomical 
+%               location. {default: 0}
 %  markerSize - The size of the dot in each slice used to represent an
-%              electrode's location. {default: 30}
-%  cntrst    - 0< number <=1 The lower this number, the lower the brightness
-%              of the image (i.e., the lower the voxel value corresponding to 
-%              white). {default: 0.5}
-%  anatOverlay- If 1, color is overlayed on the brain to show FreeSurfer's
+%               electrode's location. {default: 30}
+%  cntrst     - 0< number <=1 The lower this number, the lower the brightness
+%               of the image (i.e., the lower the voxel value corresponding to 
+%               white). {default: 0.5}
+%  anatOverlay -If 1, color is overlayed on the brain to show FreeSurfer's
 %              automatic segmentation of brain areas (neocortex uses 
 %              Desikan-Killiany parcellation). Alternatively define the fullpath
 %              to another parcellation file. {default: 0}
-%  pauseOn   - If 1, Matlab pauses after each figure is made and waits for
+%  colorLUT    - fullpath to color lookup table if you would like to use 
+%                non default colors for your parcellation overlay.
+%                {default: FreeSurferColorLUTnoFormat.txt}
+%  pauseOn   - If 1, Matlab pa'uses after each figure is made and waits for
 %              a keypress. {default: 0}
 %  printFigs - If 1, each figure is output to an eps file. {default: 0}
 
@@ -51,6 +54,7 @@ if ~isfield(cfg,'fullTitle'),     fullTitle=0;      else fullTitle=cfg.fullTitle
 if ~isfield(cfg,'markerSize'),    markerSize=30;    else markerSize=cfg.markerSize; end
 if ~isfield(cfg,'cntrst'),    cntrst=.5;          else cntrst=cfg.cntrst; end
 if ~isfield(cfg,'anatOverlay'),    anatOverlay=.5;          else anatOverlay=1; end
+if ~isfield(cfg,'colorLUT'),    colorLUT=0;          else colorLUT=cfg.colorLUT; end
 if ~isfield(cfg,'pauseOn'),    pauseOn=0;          else pauseOn=cfg.pauseOn; end
 if ~isfield(cfg,'printFigs'),    printFigs=0;          else printFigs=cfg.printFigs; end
 checkCfg(cfg,'plotMgridOnSlices.m');
@@ -109,10 +113,16 @@ if universalYes(anatOverlay)
     seg=MRIread(segFname);
     
     % Load segmentation color table
-    pathstr = fileparts(which('mgrid2matlab'));
-    inFile=fullfile(pathstr,'FreeSurferColorLUTnoFormat.txt');
-    if ~exist(inFile,'file')
-        error('Could not find file %s',inFile);
+    if universalNo(colorLUT)
+        pathstr = fileparts(which('mgrid2matlab'));
+        inFile=fullfile(pathstr,'FreeSurferColorLUTnoFormat.txt');
+        if ~exist(inFile,'file')
+            error('Could not find file %s',inFile);
+        end
+    elseif exist(colorLUT,'file')
+        inFile = colorLUT;
+    else
+        error('The defined color lookup table was not found');
     end
     fid=fopen(inFile,'r');
     %fid=fopen('/Applications/freesurfer/FreeSurferColorLUTnoFormat.txt','r');
