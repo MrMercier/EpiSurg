@@ -187,6 +187,7 @@ for hemLoop=1:2,
         if nGridThisHem,
             % Figure out how many unique types of grids there are
             gridNames = regexp(elec_gridCT(:,1),'[A-Za-z]*[^\d*]','match');
+            ini_gridNames=cell(length(gridNames),1);
             for i=1:length(gridNames)
                 ini_gridNames(i) = gridNames{i};
             end
@@ -240,14 +241,14 @@ for hemLoop=1:2,
         nElecThisHem=nDepthThisHem+nGridThisHem+nStripThisHem;
         
         %% Process depth elecs
-        if 1
-            fprintf('Localizing depths using manually marked locations.\n');
-            fprintf('Locations are NOT corrected for brain shift.\n');
-        else
-            % Hugh's original code
-            fprintf('Localizing depths using the most extreme electrodes and interpolating the rest.\n');
-            elec_depth = ntools_elec_calc_depth(ini_depth);
-        end
+        %         if 1
+        %             fprintf('Localizing depths using manually marked locations.\n');
+        %             fprintf('Locations are NOT corrected for brain shift.\n');
+        %         else
+        %             % Hugh's original code
+        %             fprintf('Localizing depths using the most extreme electrodes and interpolating the rest.\n');
+        %             elec_depth = ntools_elec_calc_depth(ini_depth);
+        %         end
         
         %% Process strip elecs
         if nStripThisHem,
@@ -283,7 +284,8 @@ for hemLoop=1:2,
         end
         
         
-        %% Save the electrodes locations as text files
+        %% Save the electrodes locations as text files(note that the text 
+        % files are closed after looping over both hemispheres)
         leptoRAS=zeros(nElecThisHem,3);
         ctRAS=leptoRAS;
         elecStems=cell(nElecThisHem,1);
@@ -415,7 +417,7 @@ fclose(fidLeptoVox);
 fclose(fidPialVox);
 
 
-%% Created text file of Inflated Pial Surface Coordinates (relies on just closed text files) 
+%% Created text file of Inflated Pial Surface Coordinates (relies on recently closed text files) 
 infRAS=pial2InfBrain(sub,[]);
 fnameInfRAS = fullfile(elecReconPath,[sub '.INF']);
 fprintf('Saving inflated pial RAS electrode locations to: %s\n',fnameInfRAS);

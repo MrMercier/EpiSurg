@@ -59,7 +59,7 @@ if ~exist('avg_thres','var') || isempty(avg_thres)
 end
 
 % read the surf file
-surf = fs_read_surf([subjectpath '/surf/' sph '.pial-outer-smoothed']);
+surf = fs_read_surf(fullfile(subjectpath,'surf',[sph '.pial-outer-smoothed']));
 % This varies depending on the version of FreeSurfer
 if ~isfield(surf,'coords')
     if isfield(surf,'vertices')

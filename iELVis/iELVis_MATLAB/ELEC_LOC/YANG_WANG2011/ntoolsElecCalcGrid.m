@@ -7,7 +7,7 @@ function [out_cell, elec_stats, info_cell]=ntoolsElecCalcGrid(ini_cell,subjectpa
 %
 % output: elec is a structure contains the grid names and their locations,
 %
-% This is modified version of Hugh's original function
+% This is a modified version of Hugh's original function
 
 
 if isempty(ini_cell)
