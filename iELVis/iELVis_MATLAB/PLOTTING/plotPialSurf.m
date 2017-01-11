@@ -231,7 +231,7 @@
 % % Plot electrodes as spheres, color coded to reflect correlation value
 % elecNames=cell(6,1);
 % for a=1:6,
-%     elecNames{a}=sprintf('lOs%d',a);
+%     elecNames{a}=sprintf('LO%d',a);
 % end
 % cfg=[];
 % cfg.view='l';
@@ -239,6 +239,24 @@
 % cfg.elecShape='sphere';
 % cfg.elecColors=rand(6,1);
 % cfg.elecColorScale='minmax';
+% cfg.showLabels='n';
+% cfg.elecUnits='r';
+% cfg.elecNames=elecNames;
+% cfg.elecSize=2;
+% cfg.title='PT001: Stimulus Correlations';
+% cfgOut=plotPialSurf('PT001',cfg);
+%
+% % Plot electrodes as spheres, strip LO is colored red
+% elecNames=cell(6,1);
+% for a=1:6,
+%     elecNames{a}=sprintf('LO%d',a);
+% end
+% cfg=[];
+% cfg.view='l';
+% cfg.figId=1;
+% cfg.elecShape='sphere';
+% cfg.elecColors=repmat([1, 0, 0],6,1);
+% cfg.elecCbar='n';
 % cfg.showLabels='n';
 % cfg.elecUnits='r';
 % cfg.elecNames=elecNames;
