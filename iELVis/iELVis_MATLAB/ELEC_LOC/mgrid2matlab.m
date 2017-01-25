@@ -1,10 +1,15 @@
-function [elecMatrix, elecLabels, elecRgb, elecPairs, elecPresent]=mgrid2matlab(mgridFname)
-%function [elecMatrix, elecLabels, elecRgb, elecPairs, elecPresent]=mgrid2matlab(mgridFname)
+function [elecMatrix, elecLabels, elecRgb, elecPairs, elecPresent]=mgrid2matlab(mgridFname,import_ref)
+%function [elecMatrix, elecLabels, elecRgb, elecPairs, elecPresent]=mgrid2matlab(mgridFname,import_ref)
 %
-% Input:
+% Required Input:
 %  mgridFname - The filename AND path of the mgrid file you wish to import OR the
 %               freesurfer name of the subject. If not specified, a GUI  
 %               pops up for you to save the file
+%
+% Optional Input:
+%  import_ref - If 0 the reference electrode strip, which must have the
+%               name REF will not be imported. Otherwise, it is imported.
+%               {default: 0}
 %
 % Output:
 %  elecMatrix  - 3D matrix of electrode coordinates. Column 1 is R->L (i.e.,
@@ -57,6 +62,9 @@ else
         %mgridFname must be a freesurfer subject codename
         mgridFname=fullfile(fsDir,mgridFname,'elec_recon',[mgridFname '.mgrid']);
     end
+end
+if nargin<2,
+   import_ref=0; 
 end
 if ~exist(mgridFname,'file')
    error('mgrid file %s not found.',mgridFname); 
@@ -191,4 +199,28 @@ if nStripGrid
             end
         end
     end
+end
+
+if universalNo(import_ref),
+    % Remove REF electrodes
+    nElec=length(elecLabels);
+    keepElec=zeros(nElec,1);
+    for a=1:nElec,
+        if ~strncmpi('REF',elecLabels{a},3),
+            keepElec(a)=1;
+        end
+    end
+    keepIds=find(keepElec==1);
+    elecLabels=elecLabels(keepIds);
+    elecPresent=elecPresent(keepIds);
+    elecRgb=elecRgb(keepIds,:);
+    
+    nPairs=size(elecPairs,1);
+    keepPair=zeros(nPairs,1);
+    for a=1:nPairs,
+        if ~strncmpi('REF',elecPairs{a,1},3),
+            keepPair(a)=1;
+        end
+    end
+    elecPairs=elecPairs(find(keepPair),:);
 end
