@@ -2,19 +2,23 @@
 %                to FreeSurfer pial surface-compatible parcellations.
 %
 % Usage:
-%  >>elecParc=elec2Parc(subj,atlas);
+%  >>elecParc=elec2Parc(subj,atlas,out2text);
 %
 % Required Input:
 %  subj  -Name of the subject's freesurfer directory (full path not
 %             needed)
 %
-% Optional Input:
+% Optional Inputs:
 %  atlas -{'DK','D','Y7','Y17'} Anatomical atlas to use:
 %           'DK'=Desikan-Killiany {default}
 %           'D' =Destrieux
 %           'Y7'=Yeo 7-network resting state fMRI atlas
 %           'Y17'=Yeo 17-network resting state fMRI atlas
 %           'fullpath2parcfile'=Some annotation file defined by you.
+%  out2text - [1 or 0] If non-zero, a tab delimited text file called *_elec_atlas_loc.txt
+%            is created in the patient's elec_recon folder (where * is the
+%            patient's codename). {default: 0}
+%  
 %
 % Output:
 %   elecParc - 2D cell array containing electrode names and their
@@ -38,7 +42,7 @@
 % atlas names to be more kind to the eye. It might help to incoporate that.
 
 
-function elecParc=elec2Parc(subj,atlas)
+function elecParc=elec2Parc(subj,atlas,out2text)
 
 if nargin<2,
     atlas='DK';
@@ -166,3 +170,12 @@ for hemLoop=1:2,
     end
 end
 
+if universalYes(out2text),
+    txt_fname=fullfile(fsDir,subj,'elec_recon',[subj '_elec_atlas_loc.txt']);
+    fprintf('Outputing electrode anatomical locations to %s\n',txt_fname);
+    fid=fopen(txt_fname,'w');
+    for chan_loop=1:size(elecParc,1),
+        fprintf(fid,'%s\t%s\n',elecParc{chan_loop,1},elecParc{chan_loop,2});
+    end
+    fclose(fid);
+end
